@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     weights, residuals, rank, s = np.linalg.lstsq(surname_mat, class_mat, rcond=None)
     print(np.shape(weights))
-    fname = target.lower() + "-weights"
+    fname = target + "-weights"
     np.save(fname, weights)
     print("Weights saved to ", fname, ".npy")
                 
