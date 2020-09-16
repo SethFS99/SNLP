@@ -73,12 +73,16 @@ def predict(test_data, thresholds, target):
 
 if __name__ == "__main__":
 
-    # pre-process only -> python predict.py <test data(input)> <output(confidence)> <weights> [--pre]
+    # pre-process only -> python predict.py <input file> <output(confidence)> <weights> [--pre]
     # one-shot         -> python predict.py <test data(input)> <output(confidence)> <weights> <threshold>
     # multi threshold  -> python predict.py <test data(input)> <output(pre/recall)> <target>  <threshold> [,<threshold> ...] --multi
     if len(sys.argv) < 4:
         print("Usage: python predict.py " +
-              "<test data> <weights file> <threshold> <output file>" )
+              "<input file> <output(confidence)> <weights> --pre\n"+
+              "or\n" +
+              "<test data(input)> <output(confidence)> <weights> <threshold>\n"+
+              "or\n" +
+              "<test data(input)> <output(pre/recall)> <target>  <threshold> [,<threshold> ...] --multi\n")
         sys.exit()
 
     if "--multi" in sys.argv: # multiple thresholds
