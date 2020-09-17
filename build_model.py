@@ -17,6 +17,7 @@ def generate_bigrams(word):
     lower = word[:-1]
     upper = word[:1]
     bigram_gen = map(lambda l,u: l+u, lower, upper)
+    
     for bigram in bigram_gen:
         yield bigram
 
@@ -27,10 +28,14 @@ def getBigramVector(word):
         ascii_lowercase, ascii_lowercase)}
     for bigram in generate_bigrams(word):
         try: 
-            bv[bigram] += 1
+            bv[bigram] += 1#count of bigrams in the word
         except KeyError:
-            print('KeyError when processing: ', letter, ' ... ignoring', file=sys.stderr)
+            print('KeyError when processing: ', bigram, ' ... ignoring', file=sys.stderr)
             continue
+        #now smooth
+    for bigram_val in bv:
+        #apply formula of (C_j + k )(N/N+V) where N and V will be the number of names in english and V is the number of words in english vocab
+        bv[bigram_val] = (bv[bigram_val] + 1)*(45000/(318000))#45000 english names according to acenstry.com and 273,000 words in the english dictionary in total
     normalized =  [ count/len(word) for count in list(bv.values()) ] 
     return normalized
 
@@ -72,7 +77,7 @@ if __name__ == "__main__":
                 class_.append(1)         
             else:
                 class_.append(0)
-
+    
     # Linear Regression
     # Convert lists to np.matrix like
     b_mat = np.array(b_vectors)
@@ -88,5 +93,3 @@ if __name__ == "__main__":
     fname = target + "-unigram-weights"
     np.save(fname, u_weights)
     print("Weights saved to ", fname, ".npy")
-            
-
