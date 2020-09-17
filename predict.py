@@ -10,8 +10,16 @@ import numpy as np
 import sys
 import os
 sys.path.append(os.path.relpath("./"))
-from build_model import getUnigramVector
+from build_model import getUnigramVector, getBigramVector
 
+
+def accuracy(tp, fp, tn, fn):
+    try:
+        return (tp +tn)/(tp + tn + fp + fn)
+    except ZeroDivisionError:
+        return 0
+
+    
 def precision(tp, fp, tn, fn):
     try:
         return tp/(tp + fp)
@@ -24,6 +32,7 @@ def recall(tp, fp, tn, fn):
         return tp/(tp + fn)
     except ZeroDivisionError:
         return 0
+
 
 def predict(test_data, thresholds, target):
     """
@@ -66,7 +75,8 @@ def predict(test_data, thresholds, target):
         # per threshold
         p = precision(tp, fp, tn, fn)
         r = recall(tp, fp, tn, fn)
-        results.append([threshold, tp, fp, tn, fn, p, r])
+        a = accuracy(tp, fp, tn, fn)
+        results.append([threshold, tp, fp, tn, fn, p, r, a])
     return results
 
 
@@ -82,7 +92,7 @@ if __name__ == "__main__":
               "or\n" +
               "<test data(input)> <output(confidence)> <weights> <threshold>\n"+
               "or\n" +
-              "<test data(input)> <output(pre/recall)> <target>  <threshold> [,<threshold> ...] --multi\n")
+              "<pre-processed test data(input)> <output filename(pre/recall)> <target>  <threshold> [,<threshold> ...] --multi\n")
         sys.exit()
 
     if "--multi" in sys.argv: # multiple thresholds
@@ -95,24 +105,28 @@ if __name__ == "__main__":
                 temp = line.strip().split(",")
                 test_data.append([ temp[0], temp[1], float(temp[2]) ])
             results = predict(test_data, thresholds, target)
-            output_file.write("threshold,tp,fp,tn,fn,precision,recall\n")
+            output_file.write("threshold,tp,fp,tn,fn,precision,recall,accuracy\n")
             for line in results:
-                output_file.write("{},{},{},{},{},{},{}".format(
+                output_file.write("{},{},{},{},{},{},{},{}".format(
                     line[0],line[1],line[2],line[3],
-                    line[4],line[5], line[6]))
+                    line[4],line[5], line[6], line[7]))
                 output_file.write("\n")
             sys.exit()
 
     with open(sys.argv[1], mode="r", encoding="utf-8") as input_file, \
             open(sys.argv[2], mode="w", encoding="utf-8") as output_file:
         weights = np.load(sys.argv[3])
+        unigram = 'unigram' in sys.argv[3]
         target = sys.argv[3].split('-')[0] # get target surname from weights file name
         test_data = []
         for line in input_file:
             temp = line.strip().split(",")
             surname = temp[0]
             nationality = temp[1]
-            s_vec = getUnigramVector(surname)
+            if unigram:
+                s_vec = getUnigramVector(surname)
+            else:
+                s_vec = getBigramVector(surname)
             confidence = np.matmul(s_vec, weights)
             test_data.append([temp[0], temp[1], confidence ])
 
